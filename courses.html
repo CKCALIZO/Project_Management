@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+    <title>Courses - Enrollment System</title>
+</head>
+<body>
+    <script>
+        // Check if user is logged in
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
+        if (!isLoggedIn) {
+            window.location.href = 'login.html';
+        }
+    </script>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-warning border-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-warning" href="index.html">Enrollment System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="students.html">Students</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="courses.html">Courses</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="calendar.html">Calendar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="reports.html">Reports</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-warning btn-sm ms-2" href="enrollment.html">New Enrollment</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Main Panel -->
+            <div class="col-12 main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Course Management</h2>
+                    <a href="index.html" class="btn btn-outline-secondary">Back to Dashboard</a>
+                </div>
+                
+                <!-- Course Filter -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Search Courses</label>
+                                <input type="text" class="form-control" id="searchCourse" placeholder="Search by course name...">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Filter by Department</label>
+                                <select class="form-select" id="filterDepartment" onchange="filterCourses()">
+                                    <option value="">All Departments</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="Engineering">Engineering</option>
+                                    <option value="Business">Business</option>
+                                    <option value="Social Sciences">Social Sciences</option>
+                                    <option value="Education">Education</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Sort By</label>
+                                <select class="form-select" id="sortCourses" onchange="filterCourses()">
+                                    <option value="name">Course Name</option>
+                                    <option value="enrolled">Most Enrolled</option>
+                                    <option value="available">Available Slots</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row g-4" id="courseContainer">
+                    <div class="col-md-6 col-lg-4" data-department="Technology">
+                        <div class="course-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h4 class="text-warning">Computer Science</h4>
+                                <span class="badge bg-secondary">Technology</span>
+                            </div>
+                            <p class="text-muted">4-year program focused on programming, algorithms, software development, and artificial intelligence.</p>
+                            <div class="course-details mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Duration:</span>
+                                    <span class="fw-bold">4 Years</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Units:</span>
+                                    <span class="fw-bold">160 Units</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Available Slots:</span>
+                                    <span class="fw-bold">50</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-warning text-dark">Full Time</span>
+                                <span class="text-muted" id="csEnrolled">0 enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4" data-department="Technology">
+                        <div class="course-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h4 class="text-warning">Information Technology</h4>
+                                <span class="badge bg-secondary">Technology</span>
+                            </div>
+                            <p class="text-muted">4-year program covering network administration, cybersecurity, database management, and IT infrastructure.</p>
+                            <div class="course-details mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Duration:</span>
+                                    <span class="fw-bold">4 Years</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Units:</span>
+                                    <span class="fw-bold">156 Units</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Available Slots:</span>
+                                    <span class="fw-bold">45</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-warning text-dark">Full Time</span>
+                                <span class="text-muted" id="itEnrolled">0 enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4" data-department="Business">
+                        <div class="course-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h4 class="text-warning">Business Administration</h4>
+                                <span class="badge bg-secondary">Business</span>
+                            </div>
+                            <p class="text-muted">4-year program in management, finance, operations, and strategic business planning.</p>
+                            <div class="course-details mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Duration:</span>
+                                    <span class="fw-bold">4 Years</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Units:</span>
+                                    <span class="fw-bold">152 Units</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Available Slots:</span>
+                                    <span class="fw-bold">60</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-warning text-dark">Full Time</span>
+                                <span class="text-muted" id="baEnrolled">0 enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4" data-department="Engineering">
+                        <div class="course-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h4 class="text-warning">Civil Engineering</h4>
+                                <span class="badge bg-secondary">Engineering</span>
+                            </div>
+                            <p class="text-muted">5-year program in structural design, construction management, and infrastructure development.</p>
+                            <div class="course-details mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Duration:</span>
+                                    <span class="fw-bold">5 Years</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Units:</span>
+                                    <span class="fw-bold">180 Units</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Available Slots:</span>
+                                    <span class="fw-bold">40</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-warning text-dark">Full Time</span>
+                                <span class="text-muted" id="ceEnrolled">0 enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4" data-department="Engineering">
+                        <div class="course-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h4 class="text-warning">Mechanical Engineering</h4>
+                                <span class="badge bg-secondary">Engineering</span>
+                            </div>
+                            <p class="text-muted">5-year program in thermodynamics, mechanics, materials science, and machine design.</p>
+                            <div class="course-details mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Duration:</span>
+                                    <span class="fw-bold">5 Years</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Units:</span>
+                                    <span class="fw-bold">180 Units</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Available Slots:</span>
+                                    <span class="fw-bold">35</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-warning text-dark">Full Time</span>
+                                <span class="text-muted" id="meEnrolled">0 enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4" data-department="Engineering">
+                        <div class="course-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h4 class="text-warning">Electrical Engineering</h4>
+                                <span class="badge bg-secondary">Engineering</span>
+                            </div>
+                            <p class="text-muted">5-year program in power systems, electronics, telecommunications, and control systems.</p>
+                            <div class="course-details mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Duration:</span>
+                                    <span class="fw-bold">5 Years</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Units:</span>
+                                    <span class="fw-bold">180 Units</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Available Slots:</span>
+                                    <span class="fw-bold">35</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-warning text-dark">Full Time</span>
+                                <span class="text-muted" id="eeEnrolled">0 enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4" data-department="Business">
+                        <div class="course-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h4 class="text-warning">Accountancy</h4>
+                                <span class="badge bg-secondary">Business</span>
+                            </div>
+                            <p class="text-muted">4-year program in financial accounting, auditing, taxation, and business law.</p>
+                            <div class="course-details mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Duration:</span>
+                                    <span class="fw-bold">4 Years</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Units:</span>
+                                    <span class="fw-bold">158 Units</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Available Slots:</span>
+                                    <span class="fw-bold">40</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-warning text-dark">Full Time</span>
+                                <span class="text-muted" id="accEnrolled">0 enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4" data-department="Social Sciences">
+                        <div class="course-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h4 class="text-warning">Psychology</h4>
+                                <span class="badge bg-secondary">Social Sciences</span>
+                            </div>
+                            <p class="text-muted">4-year program in human behavior, mental health, counseling, and psychological research.</p>
+                            <div class="course-details mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Duration:</span>
+                                    <span class="fw-bold">4 Years</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Units:</span>
+                                    <span class="fw-bold">150 Units</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Available Slots:</span>
+                                    <span class="fw-bold">30</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-warning text-dark">Full Time</span>
+                                <span class="text-muted" id="psyEnrolled">0 enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4" data-department="Education">
+                        <div class="course-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h4 class="text-warning">Education</h4>
+                                <span class="badge bg-secondary">Education</span>
+                            </div>
+                            <p class="text-muted">4-year program in teaching methodologies, curriculum development, and educational leadership.</p>
+                            <div class="course-details mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Duration:</span>
+                                    <span class="fw-bold">4 Years</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Units:</span>
+                                    <span class="fw-bold">148 Units</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Available Slots:</span>
+                                    <span class="fw-bold">45</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-warning text-dark">Full Time</span>
+                                <span class="text-muted" id="eduEnrolled">0 enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4" data-department="Business">
+                        <div class="course-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h4 class="text-warning">Marketing</h4>
+                                <span class="badge bg-secondary">Business</span>
+                            </div>
+                            <p class="text-muted">4-year program in digital marketing, brand management, consumer behavior, and market research.</p>
+                            <div class="course-details mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Duration:</span>
+                                    <span class="fw-bold">4 Years</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Units:</span>
+                                    <span class="fw-bold">150 Units</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Available Slots:</span>
+                                    <span class="fw-bold">40</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-warning text-dark">Full Time</span>
+                                <span class="text-muted" id="marEnrolled">0 enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 col-lg-4" data-department="Engineering">
+                        <div class="course-card">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h4 class="text-warning">Architecture</h4>
+                                <span class="badge bg-secondary">Engineering</span>
+                            </div>
+                            <p class="text-muted">5-year program in architectural design, building technology, urban planning, and construction.</p>
+                            <div class="course-details mb-3">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Duration:</span>
+                                    <span class="fw-bold">5 Years</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted small">Units:</span>
+                                    <span class="fw-bold">175 Units</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Available Slots:</span>
+                                    <span class="fw-bold">25</span>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge bg-warning text-dark">Full Time</span>
+                                <span class="text-muted" id="arcEnrolled">0 enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="js/storage.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/enrollment.js"></script>
+    <script src="js/students.js"></script>
+    <script src="js/courses.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/main.js"></script>
+    
+    <script>
+        // Load and display course enrollments on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            updateCourseEnrollments();
+        });
+    </script>
+</body>
+</html>
