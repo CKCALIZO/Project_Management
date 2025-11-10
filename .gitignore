@@ -1,0 +1,22 @@
+# Environment variables (contains sensitive API keys)
+.env
+
+# Node modules (if you add npm later)
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.swp
+*~
