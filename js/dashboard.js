@@ -32,10 +32,16 @@ async function updateDashboard() {
         
         // Count by status
         const enrolledCount = allEnrollments.filter(e => e.enrollment_status === 'Enrolled').length;
-        document.getElementById('enrolledCount').textContent = enrolledCount;
+        const activeEnrollmentsEl = document.getElementById('activeEnrollments');
+        if (activeEnrollmentsEl) {
+            activeEnrollmentsEl.textContent = enrolledCount;
+        }
         
         const pendingCount = allEnrollments.filter(e => e.enrollment_status === 'Pending').length;
-        document.getElementById('pendingCount').textContent = pendingCount;
+        const pendingReviewsEl = document.getElementById('pendingReviews');
+        if (pendingReviewsEl) {
+            pendingReviewsEl.textContent = pendingCount;
+        }
         
         // Render recent enrollments
         renderRecentEnrollments(allEnrollments);
@@ -47,13 +53,18 @@ async function updateDashboard() {
 
 function renderRecentEnrollments(enrollments) {
     const tbody = document.getElementById('recentEnrollmentsTable');
-    if (!tbody) return;
+    if (!tbody) {
+        console.error('Table body not found!');
+        return;
+    }
+    
+    console.log('Rendering recent enrollments:', enrollments.length);
     
     // Get last 5 enrollments
     const recent = enrollments.slice(0, 5);
     
     if (recent.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No enrollments yet</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No enrollments yet</td></tr>';
         return;
     }
     
@@ -66,17 +77,29 @@ function renderRecentEnrollments(enrollments) {
                 <td>${enrollment.student_id}</td>
                 <td>${enrollment.first_name} ${enrollment.last_name}</td>
                 <td>${enrollment.course_name}</td>
-                <td><span class="badge bg-${statusClass}">${enrollment.enrollment_status}</span></td>
                 <td>${date}</td>
+                <td><span class="badge bg-${statusClass}">${enrollment.enrollment_status}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="window.location.href='students.html'">View</button>
+                </td>
             </tr>
         `;
     }).join('');
+    console.log('Recent enrollments rendered');
 }
 
 // Load dashboard on page load
 document.addEventListener('DOMContentLoaded', async function() {
+    console.log('Dashboard DOM loaded');
+    console.log('supabaseClient exists:', !!window.supabaseClient);
+    
     const session = await checkAuth();
+    console.log('Session:', session);
+    
     if (session) {
+        console.log('Session found, updating dashboard...');
         await updateDashboard();
+    } else {
+        console.log('No session, skipping dashboard update');
     }
 });

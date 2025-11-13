@@ -46,16 +46,23 @@ async function loadEnrollmentCounts() {
 
 function renderCourses() {
     console.log('Rendering courses...');
+    console.log('All courses:', allCourses);
+    console.log('Enrollment counts:', enrollmentCounts);
+    
     allCourses.forEach(course => {
         const count = enrollmentCounts[course.id] || 0;
+        console.log(`Course ${course.name} (ID: ${course.id}): ${count} enrolled, ${course.available_slots} slots`);
         
         // Find the course card by course ID
         const courseCard = document.querySelector(`[data-course-id="${course.id}"]`);
+        console.log('Found card for', course.name, ':', !!courseCard);
+        
         if (courseCard) {
             // Update enrollment count
             const enrolledSpan = courseCard.querySelector('.enrolled-count');
             if (enrolledSpan) {
                 enrolledSpan.textContent = `${count} enrolled`;
+                console.log('Updated enrollment count for', course.name);
             }
             
             // Update available slots
@@ -64,6 +71,7 @@ function renderCourses() {
                 if (el.previousElementSibling && 
                     el.previousElementSibling.textContent.includes('Available Slots')) {
                     el.textContent = course.available_slots;
+                    console.log('Updated slots for', course.name, 'to', course.available_slots);
                 }
             });
         }
@@ -100,6 +108,7 @@ function filterCourses() {
 
 // Add course IDs to cards for easier updates
 function addCourseIdsToCards() {
+    console.log('Adding course IDs to cards...');
     const courseMapping = {
         'Computer Science': 1,
         'Information Technology': 2,
@@ -114,9 +123,14 @@ function addCourseIdsToCards() {
         'Architecture': 11
     };
     
-    document.querySelectorAll('.course-card').forEach(card => {
-        const courseName = card.querySelector('h4').textContent;
+    const cards = document.querySelectorAll('.course-card');
+    console.log('Found', cards.length, 'course cards');
+    
+    cards.forEach(card => {
+        const courseName = card.querySelector('h4').textContent.trim();
         const courseId = courseMapping[courseName];
+        console.log('Processing:', courseName, '-> ID:', courseId);
+        
         if (courseId) {
             card.parentElement.setAttribute('data-course-id', courseId);
             
@@ -127,6 +141,7 @@ function addCourseIdsToCards() {
             }
         }
     });
+    console.log('Course IDs added');
 }
 
 // Initialize on page load

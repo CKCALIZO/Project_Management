@@ -122,17 +122,28 @@ async function handleEnrollmentSubmit(e) {
         if (error) throw error;
         
         // Decrement available slots for the course
-        const { data: currentCourse } = await supabaseClient
+        const { data: currentCourse, error: fetchError } = await supabaseClient
             .from('courses')
             .select('available_slots')
             .eq('id', courseId)
             .single();
         
+        if (fetchError) {
+            console.error('Error fetching course:', fetchError);
+        }
+        
         if (currentCourse && currentCourse.available_slots > 0) {
-            await supabaseClient
+            const { error: updateError } = await supabaseClient
                 .from('courses')
                 .update({ available_slots: currentCourse.available_slots - 1 })
                 .eq('id', courseId);
+            
+            if (updateError) {
+                console.error('Error updating course slots:', updateError);
+                // Don't throw - enrollment was successful, just slot update failed
+            } else {
+                console.log('Course slots updated successfully');
+            }
         }
         
         alert('Enrollment submitted successfully!');
