@@ -1,130 +1,160 @@
-// Reports and Statistics Functions
+// Reports functionality - Updated for Supabase
 
-// Update all statistics
-function updateStatistics() {
-    const enrollments = window.appState.enrollments;
-    const courseCounts = getCourseEnrollmentCounts(enrollments);
-    const maxCount = Math.max(...Object.values(courseCounts), 1);
-
-    // Update all course bars
-    updateCourseBar('cs', courseCounts['Computer Science'], maxCount);
-    updateCourseBar('it', courseCounts['Information Technology'], maxCount);
-    updateCourseBar('ba', courseCounts['Business Administration'], maxCount);
-    updateCourseBar('ce', courseCounts['Civil Engineering'], maxCount);
-    updateCourseBar('me', courseCounts['Mechanical Engineering'], maxCount);
-    updateCourseBar('ee', courseCounts['Electrical Engineering'], maxCount);
-    updateCourseBar('acc', courseCounts['Accountancy'], maxCount);
-    updateCourseBar('psy', courseCounts['Psychology'], maxCount);
-    updateCourseBar('nur', courseCounts['Nursing'], maxCount);
-    updateCourseBar('edu', courseCounts['Education'], maxCount);
-    updateCourseBar('mar', courseCounts['Marketing'], maxCount);
-    updateCourseBar('arc', courseCounts['Architecture'], maxCount);
-    
-    // Update other distributions
-    updateStatusDistribution();
-    updateSemesterDistribution();
-    updateReportMetrics(courseCounts);
-}
-
-// Helper function to update course bar
-function updateCourseBar(prefix, count, maxCount) {
-    const countElement = document.getElementById(`${prefix}Count`);
-    const barElement = document.getElementById(`${prefix}Bar`);
-    
-    if (countElement) countElement.textContent = count;
-    if (barElement) barElement.style.width = `${(count / maxCount) * 100}%`;
-}
-
-// Update status distribution
-function updateStatusDistribution() {
-    const enrollments = window.appState.enrollments;
-    const statusCounts = {
-        'Pending': 0,
-        'Approved': 0,
-        'Enrolled': 0
-    };
-    
-    enrollments.forEach(enrollment => {
-        if (statusCounts.hasOwnProperty(enrollment.status)) {
-            statusCounts[enrollment.status]++;
+async function updateStatistics() {
+    try {
+        console.log('Loading report statistics...');
+        const { data: enrollments, error } = await supabaseClient
+            .from('enrollments')
+            .select('*');
+        
+        if (error) {
+            console.error('Error fetching enrollments:', error);
+            throw error;
         }
-    });
-    
-    const maxCount = Math.max(...Object.values(statusCounts), 1);
-    
-    document.getElementById('pendingCount').textContent = statusCounts['Pending'];
-    document.getElementById('pendingBar').style.width = `${(statusCounts['Pending'] / maxCount) * 100}%`;
-    
-    document.getElementById('approvedCount').textContent = statusCounts['Approved'];
-    document.getElementById('approvedBar').style.width = `${(statusCounts['Approved'] / maxCount) * 100}%`;
-    
-    document.getElementById('enrolledCount').textContent = statusCounts['Enrolled'];
-    document.getElementById('enrolledBar').style.width = `${(statusCounts['Enrolled'] / maxCount) * 100}%`;
+        
+        console.log('Report enrollments loaded:', enrollments);
+        const allEnrollments = enrollments || [];
+        
+        // Update overview statistics
+        document.getElementById('reportTotalStudents').textContent = allEnrollments.length;
+        
+        const uniqueCourses = [...new Set(allEnrollments.map(e => e.course_name))];
+        document.getElementById('reportTotalCourses').textContent = uniqueCourses.length;
+        
+        const enrolledCount = allEnrollments.filter(e => e.enrollment_status === 'Enrolled').length;
+        document.getElementById('reportEnrolledCount').textContent = enrolledCount;
+        
+        const pendingCount = allEnrollments.filter(e => e.enrollment_status === 'Pending').length;
+        document.getElementById('reportPendingCount').textContent = pendingCount;
+        
+        // Update enrollment by course
+        await updateEnrollmentByCourse(allEnrollments);
+        
+        // Update status distribution
+        updateStatusDistribution(allEnrollments);
+        
+        // Update semester distribution
+        updateSemesterDistribution(allEnrollments);
+        
+    } catch (error) {
+        console.error('Error updating statistics:', error);
+    }
 }
 
-// Update semester distribution
-function updateSemesterDistribution() {
-    const enrollments = window.appState.enrollments;
-    const semesterCounts = {
-        '1st Semester': 0,
-        '2nd Semester': 0,
-        'Summer': 0
-    };
-    
-    enrollments.forEach(enrollment => {
-        if (semesterCounts.hasOwnProperty(enrollment.semester)) {
-            semesterCounts[enrollment.semester]++;
-        }
-    });
-    
-    const maxCount = Math.max(...Object.values(semesterCounts), 1);
-    
-    document.getElementById('sem1Count').textContent = semesterCounts['1st Semester'];
-    document.getElementById('sem1Bar').style.width = `${(semesterCounts['1st Semester'] / maxCount) * 100}%`;
-    
-    document.getElementById('sem2Count').textContent = semesterCounts['2nd Semester'];
-    document.getElementById('sem2Bar').style.width = `${(semesterCounts['2nd Semester'] / maxCount) * 100}%`;
-    
-    document.getElementById('summerCount').textContent = semesterCounts['Summer'];
-    document.getElementById('summerBar').style.width = `${(semesterCounts['Summer'] / maxCount) * 100}%`;
+async function updateEnrollmentByCourse(enrollments) {
+    try {
+        const { data: courses, error } = await supabaseClient
+            .from('courses')
+            .select('*')
+            .order('name');
+        
+        if (error) throw error;
+        
+        const container = document.getElementById('courseEnrollmentBars');
+        if (!container) return;
+        
+        // Count enrollments per course
+        const courseCounts = {};
+        enrollments.forEach(e => {
+            courseCounts[e.course_name] = (courseCounts[e.course_name] || 0) + 1;
+        });
+        
+        // Find max for percentage calculation
+        const maxCount = Math.max(...Object.values(courseCounts), 1);
+        
+        container.innerHTML = courses.map(course => {
+            const count = courseCounts[course.name] || 0;
+            const percentage = (count / maxCount) * 100;
+            
+            return `
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="fw-bold">${course.name}</span>
+                        <span class="text-muted">${count} students</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-warning" role="progressbar" 
+                             style="width: ${percentage}%" 
+                             aria-valuenow="${count}" aria-valuemin="0" aria-valuemax="${maxCount}">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        console.error('Error updating course enrollments:', error);
+    }
 }
 
-// Update report metrics
-function updateReportMetrics(courseCounts) {
-    const enrollments = window.appState.enrollments;
+function updateStatusDistribution(enrollments) {
+    const container = document.getElementById('statusDistribution');
+    if (!container) return;
     
-    // Enrollment Rate (placeholder calculation)
-    const enrollmentRate = enrollments.length > 0 ? 100 : 0;
-    document.getElementById('enrollmentRate').textContent = `${enrollmentRate}%`;
-    
-    // Most Popular Course
-    const popularCourse = Object.entries(courseCounts).reduce((a, b) => b[1] > a[1] ? b : a, ['None', 0]);
-    document.getElementById('popularCourse').textContent = popularCourse[0];
-    document.getElementById('popularCourseCount').textContent = `${popularCourse[1]} students`;
-    
-    // Approval Rate
-    const approvedCount = enrollments.filter(e => e.status === 'Approved' || e.status === 'Enrolled').length;
-    const approvalRate = enrollments.length > 0 ? Math.round((approvedCount / enrollments.length) * 100) : 0;
-    document.getElementById('approvalRate').textContent = `${approvalRate}%`;
-}
-
-// Generate report
-function generateReport() {
-    const enrollments = window.appState.enrollments;
-    const courseCounts = getCourseEnrollmentCounts(enrollments);
-    const totalStudents = enrollments.length;
-    
-    let reportText = `ENROLLMENT SYSTEM REPORT\n`;
-    reportText += `Generated: ${new Date().toLocaleString()}\n\n`;
-    reportText += `SUMMARY\n`;
-    reportText += `Total Students: ${totalStudents}\n`;
-    reportText += `Active Enrollments: ${enrollments.filter(e => e.status === 'Enrolled').length}\n`;
-    reportText += `Pending Reviews: ${enrollments.filter(e => e.status === 'Pending').length}\n\n`;
-    reportText += `COURSE BREAKDOWN\n`;
-    
-    Object.entries(courseCounts).forEach(([course, count]) => {
-        reportText += `${course}: ${count} students\n`;
+    const statusCounts = {};
+    enrollments.forEach(e => {
+        statusCounts[e.enrollment_status] = (statusCounts[e.enrollment_status] || 0) + 1;
     });
     
-    alert(reportText);
+    const total = enrollments.length || 1;
+    
+    container.innerHTML = Object.entries(statusCounts).map(([status, count]) => {
+        const percentage = ((count / total) * 100).toFixed(1);
+        const bgClass = status === 'Enrolled' ? 'success' : 'warning';
+        
+        return `
+            <div class="mb-3">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="fw-bold">${status}</span>
+                    <span class="text-muted">${count} (${percentage}%)</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar bg-${bgClass}" role="progressbar" 
+                         style="width: ${percentage}%" 
+                         aria-valuenow="${count}" aria-valuemin="0" aria-valuemax="${total}">
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
+
+function updateSemesterDistribution(enrollments) {
+    const container = document.getElementById('semesterDistribution');
+    if (!container) return;
+    
+    const semesterCounts = {};
+    enrollments.forEach(e => {
+        const semester = e.semester || 'Not specified';
+        semesterCounts[semester] = (semesterCounts[semester] || 0) + 1;
+    });
+    
+    const total = enrollments.length || 1;
+    
+    container.innerHTML = Object.entries(semesterCounts)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([semester, count]) => {
+            const percentage = ((count / total) * 100).toFixed(1);
+            
+            return `
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="fw-bold">${semester}</span>
+                        <span class="text-muted">${count} (${percentage}%)</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-primary" role="progressbar" 
+                             style="width: ${percentage}%" 
+                             aria-valuenow="${count}" aria-valuemin="0" aria-valuemax="${total}">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    await checkAuth();
+    await updateStatistics();
+});
