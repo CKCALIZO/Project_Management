@@ -7,7 +7,3 @@
   to = "/login.html"
   status = 200
   force = false
-  conditions = {Role = ["public"]}
-
-[context.production.environment]
-  SUPABASE_URL = "https://iiwdpempngtapcyytdbg.supabase.co"
