@@ -56,7 +56,7 @@
                     <a href="index.html" class="btn btn-outline-secondary">Back to Dashboard</a>
                 </div>
                 
-                <div class="card">
+                <div class="card" id="enrollmentCard">
                     <div class="card-body">
                         <form id="enrollmentForm">
                             <div class="row">
@@ -68,7 +68,7 @@
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label fw-bold">Email Address</label>
                                     <input type="email" class="form-control" id="email" name="email"
-                                           pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" 
+                                           pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}" 
                                            title="Please enter a valid email with @ and domain (e.g., .com)" 
                                            required>
                                 </div>
@@ -151,10 +151,43 @@
                             </div>
 
                             <div class="d-flex gap-2 mt-4">
-                                <button type="submit" class="btn btn-warning fw-bold px-4">Submit Enrollment</button>
+                                <button type="button" class="btn btn-warning fw-bold px-4" onclick="proceedToSubjects()">Proceed to Subject Selection</button>
                                 <button type="reset" class="btn btn-outline-secondary px-4">Clear Form</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+
+                <!-- Step 2: Subject Selection (Hidden Initially) -->
+                <div class="card" id="subjectSelectionCard" style="display: none;">
+                    <div class="card-header">
+                        <h4 class="mb-0">Step 2: Select Subjects/Units</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <strong>Instructions:</strong> Select subjects for enrollment. Check prerequisites before selecting. Choose your preferred section for each subject.
+                        </div>
+                        
+                        <div id="subjectsList" class="mb-4">
+                            <!-- Subjects will be loaded here -->
+                        </div>
+
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6 class="fw-bold">Selected Subjects Summary</h6>
+                                <div id="selectedSubjectsSummary">
+                                    <p class="text-muted">No subjects selected yet</p>
+                                </div>
+                                <div class="mt-2">
+                                    <strong>Total Units: <span id="totalUnits">0</span></strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-secondary" onclick="backToPersonalInfo()">Back</button>
+                            <button type="button" class="btn btn-warning fw-bold px-4" onclick="submitEnrollment()">Complete Enrollment</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -167,3 +200,4 @@
     <script src="js/enrollment.js"></script>
 </body>
 </html>
+

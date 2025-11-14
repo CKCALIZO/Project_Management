@@ -208,6 +208,7 @@ function updateSemesterDistribution(enrollments) {
 // Generate Report (CSV and PDF)
 async function generateReport() {
     try {
+        // Get enrollments with subject information
         const { data: enrollments, error } = await supabaseClient
             .from('enrollments')
             .select('*')
@@ -215,11 +216,29 @@ async function generateReport() {
         
         if (error) throw error;
         
+        // Get subject data for each enrollment
+        const enrichedData = await Promise.all((enrollments || []).map(async (e) => {
+            const { data: studentSubjects } = await supabaseClient
+                .from('student_subjects')
+                .select('subjects:subject_id(code, units)')
+                .eq('enrollment_id', e.id);
+            
+            const totalUnits = studentSubjects?.reduce((sum, ss) => sum + (ss.subjects?.units || 0), 0) || 0;
+            const subjectCodes = studentSubjects?.map(ss => ss.subjects?.code).join(', ') || 'None';
+            
+            return {
+                ...e,
+                totalUnits,
+                subjectCodes,
+                subjectCount: studentSubjects?.length || 0
+            };
+        }));
+        
         // Generate CSV
-        generateCSVReport(enrollments || []);
+        generateCSVReport(enrichedData);
         
         // Generate PDF
-        generatePDFReport(enrollments || []);
+        generatePDFReport(enrichedData);
         
     } catch (error) {
         console.error('Error generating report:', error);
@@ -228,8 +247,8 @@ async function generateReport() {
 }
 
 function generateCSVReport(enrollments) {
-    // CSV Headers
-    const headers = ['Student ID', 'Name', 'Email', 'Phone', 'Course', 'Year Level', 'Semester', 'Status', 'Enrollment Date'];
+    // CSV Headers with subject information
+    const headers = ['Student ID', 'Name', 'Email', 'Phone', 'Course', 'Year Level', 'Semester', 'Total Units', 'Subject Count', 'Enrolled Subjects', 'Status', 'Enrollment Date'];
     
     // CSV Rows
     const rows = enrollments.map(e => [
@@ -240,6 +259,9 @@ function generateCSVReport(enrollments) {
         e.course_name,
         e.year_level || 'N/A',
         e.semester || 'N/A',
+        e.totalUnits || 0,
+        e.subjectCount || 0,
+        e.subjectCodes || 'None',
         e.enrollment_status,
         new Date(e.enrollment_date).toLocaleDateString()
     ]);
@@ -325,6 +347,8 @@ function generatePDFReport(enrollments) {
                 <th>Course</th>
                 <th>Year Level</th>
                 <th>Semester</th>
+                <th>Units</th>
+                <th>Subjects</th>
                 <th>Status</th>
                 <th>Date</th>
             </tr>
@@ -340,6 +364,8 @@ function generatePDFReport(enrollments) {
                 <td>${e.course_name}</td>
                 <td>${e.year_level || 'N/A'}</td>
                 <td>${e.semester || 'N/A'}</td>
+                <td style="text-align: center;"><strong>${e.totalUnits || 0}</strong></td>
+                <td style="text-align: center;">${e.subjectCount || 0}</td>
                 <td>${e.enrollment_status}</td>
                 <td>${new Date(e.enrollment_date).toLocaleDateString()}</td>
             </tr>
