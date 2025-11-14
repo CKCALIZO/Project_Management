@@ -2,6 +2,10 @@
   publish = "."
   command = "echo 'No build command needed'"
 
+# Tell Netlify that these Supabase keys are safe to expose (they're meant to be public)
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "ANON_KEY,PROJECT_URL,SUPABASE_URL,SUPABASE_ANON_KEY"
+
 [[redirects]]
   from = "/*"
   to = "/login.html"
