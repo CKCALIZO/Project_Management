@@ -12,13 +12,24 @@ async function checkAuth() {
 }
 
 async function signOut() {
-    const { error } = await supabaseClient.auth.signOut();
-    if (error) {
-        console.error('Error signing out:', error);
-        return;
+    console.log('signOut called');
+    try {
+        // Try to sign out from Supabase
+        const { error } = await supabaseClient.auth.signOut();
+        
+        // Ignore "Auth session missing" error - user is already logged out
+        if (error && error.name !== 'AuthSessionMissingError') {
+            console.error('Error signing out:', error);
+        }
+        console.log('Supabase signOut completed');
+    } catch (err) {
+        console.log('Sign out catch:', err);
     }
-    // Supabase handles session cleanup automatically
+    
+    // Always redirect to login page
+    console.log('Redirecting to login...');
     window.location.href = 'login.html';
+    return false; // Prevent default link behavior
 }
 
 // Add logout button to navbar
@@ -27,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (navbar) {
         const logoutBtn = document.createElement('li');
         logoutBtn.className = 'nav-item';
-        logoutBtn.innerHTML = '<a class="nav-link text-danger" href="#" onclick="signOut()">Logout</a>';
+        logoutBtn.innerHTML = '<a class="nav-link text-danger" href="#" onclick="signOut(); return false;">Logout</a>';
         navbar.appendChild(logoutBtn);
     }
 });
