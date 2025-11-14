@@ -10,10 +10,13 @@
     <title>Dashboard - Enrollment System</title>
 </head>
 <body>
-    <script src="js/supabase-config.js"></script>
     <script>
         // Check if user is logged in using Supabase session
         (async function() {
+            // Wait for supabaseClient to be available
+            while (typeof supabaseClient === 'undefined') {
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) {
                 window.location.href = 'login.html';
