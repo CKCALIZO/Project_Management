@@ -49,6 +49,18 @@
 
     <script src="js/supabase-config.js"></script>
     <script>
+        // Handle email confirmation redirect
+        window.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const accessToken = params.get('access_token');
+            const type = params.get('type');
+            
+            if (type === 'signup' && accessToken) {
+                // User clicked email confirmation link
+                alert('Email verified successfully! You can now sign in.');
+            }
+        });
+        
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
