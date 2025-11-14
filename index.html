@@ -10,12 +10,15 @@
     <title>Dashboard - Enrollment System</title>
 </head>
 <body>
+    <script src="js/supabase-config.js"></script>
     <script>
-        // Check if user is logged in
-        const isLoggedIn = localStorage.getItem('isLoggedIn');
-        if (!isLoggedIn) {
-            window.location.href = 'login.html';
-        }
+        // Check if user is logged in using Supabase session
+        (async function() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            }
+        })();
     </script>
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-warning border-3">

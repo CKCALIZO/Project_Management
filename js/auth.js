@@ -17,8 +17,7 @@ async function signOut() {
         console.error('Error signing out:', error);
         return;
     }
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('userEmail');
+    // Supabase handles session cleanup automatically
     window.location.href = 'login.html';
 }
 
