@@ -1,6 +1,5 @@
 # Environment variables (contains sensitive API keys)
 .env
-js/supabase-config.js
 
 # Node modules (if you add npm later)
 node_modules/

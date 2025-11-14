@@ -79,6 +79,13 @@
         document.getElementById('signupForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
+            // Check if supabaseClient exists
+            if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+                console.error('supabaseClient is not defined. Check if supabase-config.js loaded correctly.');
+                alert('Configuration error. Please refresh the page and try again.');
+                return;
+            }
+            
             const firstName = document.getElementById('firstName').value;
             const lastName = document.getElementById('lastName').value;
             const email = document.getElementById('email').value;
