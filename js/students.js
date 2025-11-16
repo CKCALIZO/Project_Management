@@ -17,7 +17,16 @@ async function loadEnrollments() {
         }
         
         console.log('Enrollments loaded:', enrollments);
-        allEnrollments = enrollments || [];
+        
+        // Group by student_id to show only unique students (most recent enrollment)
+        const uniqueStudents = {};
+        enrollments.forEach(enrollment => {
+            if (!uniqueStudents[enrollment.student_id]) {
+                uniqueStudents[enrollment.student_id] = enrollment;
+            }
+        });
+        
+        allEnrollments = Object.values(uniqueStudents);
         filteredEnrollments = [...allEnrollments];
         renderStudentList();
     } catch (error) {

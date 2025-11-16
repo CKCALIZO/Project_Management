@@ -3,6 +3,55 @@
 let enrollmentData = {};
 let selectedSubjects = [];
 
+// Check if coming from new-student or re-enrollment page
+window.addEventListener('DOMContentLoaded', function() {
+    const newStudent = sessionStorage.getItem('newStudent');
+    const reEnrollment = sessionStorage.getItem('reEnrollment');
+    
+    if (newStudent) {
+        const data = JSON.parse(newStudent);
+        populateFromSession(data, 'New Student');
+        sessionStorage.removeItem('newStudent');
+    } else if (reEnrollment) {
+        const data = JSON.parse(reEnrollment);
+        populateFromSession(data, 'Re-enrollment');
+        // Pre-fill course selection form
+        if (data.course_id) document.getElementById('course').value = data.course_id;
+        if (data.year_level) document.getElementById('yearLevel').value = data.year_level;
+        if (data.semester) document.getElementById('semester').value = data.semester;
+        if (data.enrollment_status) document.getElementById('enrollmentStatus').value = data.enrollment_status;
+        sessionStorage.removeItem('reEnrollment');
+    }
+    
+    loadCourses();
+});
+
+function populateFromSession(data, type) {
+    // Store student data
+    enrollmentData = data;
+    
+    // Update page title
+    document.getElementById('pageTitle').textContent = `${type} - Course & Subject Selection`;
+    
+    // Show student info summary
+    document.getElementById('studentInfoCard').style.display = 'block';
+    document.getElementById('summaryStudentId').textContent = data.student_id;
+    document.getElementById('summaryName').textContent = `${data.first_name} ${data.middle_name || ''} ${data.last_name}`.trim();
+    document.getElementById('summaryEmail').textContent = data.email;
+    document.getElementById('summaryPhone').textContent = data.phone;
+    document.getElementById('summaryAddress').textContent = data.address || 'N/A';
+}
+
+function goBack() {
+    if (enrollmentData.is_reEnrollment) {
+        window.location.href = 're-enrollment.html';
+    } else if (enrollmentData.student_id) {
+        window.location.href = 'new-student.html';
+    } else {
+        window.location.href = 'index.html';
+    }
+}
+
 async function generateStudentId() {
     try {
         const { data: enrollments, error } = await supabaseClient
@@ -40,17 +89,19 @@ async function loadCourses() {
     try {
         const { data: courses, error } = await supabaseClient
             .from('courses')
-            .select('*')
+            .select('id, name, code')
             .order('name');
         
         if (error) throw error;
         
         const courseSelect = document.getElementById('course');
         if (courseSelect && courses) {
-            courseSelect.innerHTML = '<option value="">Select a course</option>' +
-                courses.map(course => 
-                    `<option value="${course.id}">${course.name}</option>`
-                ).join('');
+            courseSelect.innerHTML = '<option value="">Select a course...</option>' +
+                courses.map(course => {
+                    // Only show course name, ignore code if it's undefined/null
+                    const displayName = course.name || 'Unnamed Course';
+                    return `<option value="${course.id}">${displayName}</option>`;
+                }).join('');
         }
     } catch (error) {
         console.error('Error loading courses:', error);
@@ -65,7 +116,7 @@ async function proceedToSubjects() {
         return;
     }
     
-    // Store personal information
+    // Store course information
     const formData = new FormData(form);
     const courseId = formData.get('course');
     const yearLevel = formData.get('yearLevel');
@@ -78,15 +129,9 @@ async function proceedToSubjects() {
         .eq('id', courseId)
         .single();
     
+    // Merge with existing enrollment data (from new-student or re-enrollment)
     enrollmentData = {
-        student_id: document.getElementById('studentId').value,
-        first_name: formData.get('firstName'),
-        last_name: formData.get('lastName'),
-        middle_name: formData.get('middleName') || null,
-        email: formData.get('email'),
-        phone: formData.get('phone') ? '+63' + formData.get('phone') : null,
-        address: formData.get('address') || null,
-        birth_date: formData.get('birthDate') || null,
+        ...enrollmentData,
         course_id: courseId,
         course_name: course ? course.name : 'Unknown',
         year_level: yearLevel,

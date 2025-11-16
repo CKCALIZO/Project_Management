@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>Student Re-enrollment</title>
+</head>
+<body>
+    <script src="js/supabase-config.js"></script>
+    <script>
+        // Check if user is logged in using Supabase session
+        (async function() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-warning border-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-warning" href="index.html">Enrollment System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="students.html">Students</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="courses.html">Courses</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="reports.html">Reports</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            Enrollment
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="new-student.html">New Student</a></li>
+                            <li><a class="dropdown-item active" href="re-enrollment.html">Re-enrollment</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12 main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2>Student Re-enrollment</h2>
+                        <p class="text-muted">Search for existing student to enroll for next semester</p>
+                    </div>
+                    <a href="index.html" class="btn btn-outline-secondary">Back to Dashboard</a>
+                </div>
+                
+                <!-- Search Section -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Search Student</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Search by Student ID</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="searchStudentId" placeholder="Enter student ID (e.g., 2500001)" pattern="[0-9]{7}">
+                                    <button class="btn btn-warning" onclick="searchByStudentId()">
+                                        <i class="bi bi-search"></i> Search
+                                    </button>
+                                    <button class="btn btn-outline-secondary" onclick="clearStudentIdSearch()">
+                                        <i class="bi bi-x-circle"></i> Clear
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Search by Name</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="searchName" placeholder="Enter first or last name">
+                                    <button class="btn btn-warning" onclick="searchByName()">
+                                        <i class="bi bi-search"></i> Search
+                                    </button>
+                                    <button class="btn btn-outline-secondary" onclick="clearNameSearch()">
+                                        <i class="bi bi-x-circle"></i> Clear
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Results -->
+                <div class="card mb-4" id="searchResultsCard" style="display: none;">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Search Results</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Name</th>
+                                        <th>Course</th>
+                                        <th>Year Level</th>
+                                        <th>Last Semester</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="searchResultsBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Details -->
+                <div class="card" id="studentDetailsCard" style="display: none;">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">Student Details</h5>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <p><strong>Student ID:</strong> <span id="detailStudentId"></span></p>
+                                <p><strong>Name:</strong> <span id="detailName"></span></p>
+                                <p><strong>Email:</strong> <span id="detailEmail"></span></p>
+                                <p><strong>Phone:</strong> <span id="detailPhone"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Current Course:</strong> <span id="detailCourse"></span></p>
+                                <p><strong>Current Year:</strong> <span id="detailYearLevel"></span></p>
+                                <p><strong>Last Semester:</strong> <span id="detailSemester"></span></p>
+                                <p><strong>Status:</strong> <span id="detailStatus" class="badge"></span></p>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <h5 class="mb-3">New Enrollment Information</h5>
+                        <form id="reEnrollmentForm">
+                            <input type="hidden" id="selectedEnrollmentId">
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold">Course</label>
+                                    <select class="form-select" id="newCourse" required>
+                                        <option value="">Select course...</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold">Year Level</label>
+                                    <select class="form-select" id="newYearLevel" required>
+                                        <option value="">Select year...</option>
+                                        <option value="1st Year">1st Year</option>
+                                        <option value="2nd Year">2nd Year</option>
+                                        <option value="3rd Year">3rd Year</option>
+                                        <option value="4th Year">4th Year</option>
+                                        <option value="5th Year">5th Year</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold">Semester</label>
+                                    <select class="form-select" id="newSemester" required>
+                                        <option value="">Select semester...</option>
+                                        <option value="1st Semester">1st Semester</option>
+                                        <option value="2nd Semester">2nd Semester</option>
+                                        <option value="Summer">Summer</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Enrollment Status</label>
+                                    <select class="form-select" id="newStatus" required>
+                                        <option value="Pending">Pending</option>
+                                        <option value="Approved">Approved</option>
+                                        <option value="Enrolled">Enrolled</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-4">
+                                <button type="button" class="btn btn-warning fw-bold px-4" onclick="proceedToSubjects()">
+                                    Proceed to Subject Selection
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary px-4" onclick="clearForm()">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        let selectedStudent = null;
+
+        // Load courses
+        async function loadCourses() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('courses')
+                    .select('*')
+                    .order('name');
+                
+                if (error) throw error;
+
+                const select = document.getElementById('newCourse');
+                data.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course.id;
+                    // Only show course name (code may not exist in database)
+                    option.textContent = course.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading courses:', error);
+            }
+        }
+
+        loadCourses();
+
+        async function searchByStudentId() {
+            const studentId = document.getElementById('searchStudentId').value.trim();
+            if (!studentId) {
+                alert('Please enter a student ID');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('enrollments')
+                    .select('*')
+                    .eq('student_id', studentId)
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    console.error('Search error:', error);
+                    throw error;
+                }
+
+                if (data.length === 0) {
+                    alert('No student found with this ID');
+                    return;
+                }
+
+                displaySearchResults(data);
+            } catch (error) {
+                console.error('Error searching:', error);
+                alert('Error searching for student');
+            }
+        }
+
+        async function searchByName() {
+            const name = document.getElementById('searchName').value.trim();
+            if (!name) {
+                alert('Please enter a name');
+                return;
+            }
+
+            try {
+                const searchPattern = `%${name}%`;
+                const { data, error } = await supabaseClient
+                    .from('enrollments')
+                    .select('*')
+                    .or(`first_name.ilike.${searchPattern},last_name.ilike.${searchPattern},middle_name.ilike.${searchPattern}`)
+                    .order('created_at', { ascending: false });
+                
+                if (error) {
+                    console.error('Search error:', error);
+                    throw error;
+                }
+
+                if (data.length === 0) {
+                    alert('No students found with this name');
+                    return;
+                }
+
+                displaySearchResults(data);
+            } catch (error) {
+                console.error('Error searching:', error);
+                alert('Error searching for students');
+            }
+        }
+
+        function displaySearchResults(results) {
+            const tbody = document.getElementById('searchResultsBody');
+            tbody.innerHTML = '';
+
+            // Group by student_id and show only the latest enrollment
+            const latestEnrollments = {};
+            results.forEach(enrollment => {
+                if (!latestEnrollments[enrollment.student_id] || 
+                    new Date(enrollment.created_at) > new Date(latestEnrollments[enrollment.student_id].created_at)) {
+                    latestEnrollments[enrollment.student_id] = enrollment;
+                }
+            });
+
+            Object.values(latestEnrollments).forEach(enrollment => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${enrollment.student_id}</td>
+                    <td>${enrollment.first_name} ${enrollment.middle_name || ''} ${enrollment.last_name}</td>
+                    <td>${enrollment.course_name || 'N/A'}</td>
+                    <td>${enrollment.year_level || 'N/A'}</td>
+                    <td>${enrollment.semester || 'N/A'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick='selectStudent(${JSON.stringify(enrollment)})'>
+                            Select
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('searchResultsCard').style.display = 'block';
+        }
+
+        function selectStudent(enrollment) {
+            selectedStudent = enrollment;
+            
+            // Display student details
+            document.getElementById('detailStudentId').textContent = enrollment.student_id;
+            document.getElementById('detailName').textContent = `${enrollment.first_name} ${enrollment.middle_name || ''} ${enrollment.last_name}`;
+            document.getElementById('detailEmail').textContent = enrollment.email;
+            document.getElementById('detailPhone').textContent = enrollment.phone;
+            document.getElementById('detailCourse').textContent = enrollment.course_name || 'N/A';
+            document.getElementById('detailYearLevel').textContent = enrollment.year_level || 'N/A';
+            document.getElementById('detailSemester').textContent = enrollment.semester || 'N/A';
+            
+            const statusBadge = document.getElementById('detailStatus');
+            statusBadge.textContent = enrollment.enrollment_status;
+            statusBadge.className = `badge bg-${enrollment.enrollment_status === 'Enrolled' ? 'success' : 'warning'}`;
+
+            // Pre-fill form with suggestions
+            document.getElementById('selectedEnrollmentId').value = enrollment.id;
+            document.getElementById('newCourse').value = enrollment.course_id;
+            
+            // Auto-suggest next year level
+            const currentYear = enrollment.year_level;
+            const yearMap = {
+                '1st Year': '2nd Year',
+                '2nd Year': '3rd Year',
+                '3rd Year': '4th Year',
+                '4th Year': '5th Year'
+            };
+            document.getElementById('newYearLevel').value = yearMap[currentYear] || currentYear;
+
+            // Auto-suggest next semester
+            const currentSemester = enrollment.semester;
+            const semesterMap = {
+                '1st Semester': '2nd Semester',
+                '2nd Semester': '1st Semester',
+                'Summer': '1st Semester'
+            };
+            document.getElementById('newSemester').value = semesterMap[currentSemester] || '';
+
+            document.getElementById('studentDetailsCard').style.display = 'block';
+            document.getElementById('studentDetailsCard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function proceedToSubjects() {
+            const form = document.getElementById('reEnrollmentForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Store re-enrollment data
+            const reEnrollmentData = {
+                student_id: selectedStudent.student_id,
+                email: selectedStudent.email,
+                first_name: selectedStudent.first_name,
+                middle_name: selectedStudent.middle_name,
+                last_name: selectedStudent.last_name,
+                phone: selectedStudent.phone,
+                birth_date: selectedStudent.birth_date,
+                address: selectedStudent.address,
+                course_id: document.getElementById('newCourse').value,
+                year_level: document.getElementById('newYearLevel').value,
+                semester: document.getElementById('newSemester').value,
+                enrollment_status: document.getElementById('newStatus').value,
+                is_reEnrollment: true
+            };
+
+            sessionStorage.setItem('reEnrollment', JSON.stringify(reEnrollmentData));
+            window.location.href = 'enrollment.html';
+        }
+
+        function clearStudentIdSearch() {
+            document.getElementById('searchStudentId').value = '';
+            document.getElementById('searchResultsCard').style.display = 'none';
+            document.getElementById('studentDetailsCard').style.display = 'none';
+            selectedStudent = null;
+        }
+
+        function clearNameSearch() {
+            document.getElementById('searchName').value = '';
+            document.getElementById('searchResultsCard').style.display = 'none';
+            document.getElementById('studentDetailsCard').style.display = 'none';
+            selectedStudent = null;
+        }
+
+        function clearForm() {
+            document.getElementById('searchStudentId').value = '';
+            document.getElementById('searchName').value = '';
+            document.getElementById('searchResultsCard').style.display = 'none';
+            document.getElementById('studentDetailsCard').style.display = 'none';
+            document.getElementById('reEnrollmentForm').reset();
+            selectedStudent = null;
+        }
+    </script>
+</body>
+</html>

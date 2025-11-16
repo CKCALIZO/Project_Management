@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>New Student Enrollment</title>
+</head>
+<body>
+    <script src="js/supabase-config.js"></script>
+    <script>
+        // Check if user is logged in using Supabase session
+        (async function() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = 'login.html';
+            }
+        })();
+    </script>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-warning border-3">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold text-warning" href="index.html">Enrollment System</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="students.html">Students</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="courses.html">Courses</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="reports.html">Reports</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            Enrollment
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item active" href="new-student.html">New Student</a></li>
+                            <li><a class="dropdown-item" href="re-enrollment.html">Re-enrollment</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12 main-content">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2>New Student Enrollment</h2>
+                        <p class="text-muted">Register a new student and proceed to course selection</p>
+                    </div>
+                    <a href="index.html" class="btn btn-outline-secondary">Back to Dashboard</a>
+                </div>
+                
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">Student Information</h5>
+                        <form id="newStudentForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Student ID</label>
+                                    <input type="text" class="form-control bg-light" id="studentId" readonly>
+                                    <small class="text-muted">Auto-generated</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Email Address <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="email" name="email"
+                                           pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}" 
+                                           title="Please enter a valid email" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="firstName" name="firstName" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold">Middle Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="middleName" name="middleName" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold">Last Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="lastName" name="lastName" required>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Phone Number <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">+63</span>
+                                        <input type="tel" class="form-control" id="phone" name="phone" 
+                                               placeholder="9123456789" 
+                                               pattern="[0-9]{10}" 
+                                               maxlength="10"
+                                               title="Enter 10 digits" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold">Date of Birth <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="birthDate" name="birthDate" required>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Address <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="address" name="address" rows="2" required></textarea>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-4">
+                                <button type="button" class="btn btn-warning fw-bold px-4" onclick="proceedToCourseSelection()">
+                                    Continue to Course Selection
+                                </button>
+                                <button type="reset" class="btn btn-outline-secondary px-4">Clear Form</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        // Generate student ID on page load
+        async function generateStudentId() {
+            try {
+                const currentYear = new Date().getFullYear();
+                const yearPrefix = String(currentYear).slice(-2); // Get last 2 digits of year
+                
+                const { data, error } = await supabaseClient
+                    .from('enrollments')
+                    .select('student_id')
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                
+                let nextId = 1;
+                if (data && data.length > 0) {
+                    const lastId = data[0].student_id;
+                    // Extract only the numeric part after the year prefix
+                    const numPart = parseInt(lastId.substring(2));
+                    if (!isNaN(numPart)) {
+                        nextId = numPart + 1;
+                    }
+                }
+                
+                // Format: YY + 5-digit number (e.g., 2500001, 2500002)
+                document.getElementById('studentId').value = `${yearPrefix}${String(nextId).padStart(5, '0')}`;
+            } catch (error) {
+                console.error('Error generating student ID:', error);
+                const currentYear = new Date().getFullYear();
+                const yearPrefix = String(currentYear).slice(-2);
+                document.getElementById('studentId').value = `${yearPrefix}00001`;
+            }
+        }
+
+        generateStudentId();
+
+        function proceedToCourseSelection() {
+            const form = document.getElementById('newStudentForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Store student data in sessionStorage
+            const studentData = {
+                student_id: document.getElementById('studentId').value,
+                email: document.getElementById('email').value,
+                first_name: document.getElementById('firstName').value,
+                middle_name: document.getElementById('middleName').value,
+                last_name: document.getElementById('lastName').value,
+                phone: '+63' + document.getElementById('phone').value,
+                birth_date: document.getElementById('birthDate').value,
+                address: document.getElementById('address').value
+            };
+
+            sessionStorage.setItem('newStudent', JSON.stringify(studentData));
+            window.location.href = 'enrollment.html';
+        }
+    </script>
+</body>
+</html>

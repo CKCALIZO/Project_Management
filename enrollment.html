@@ -58,73 +58,45 @@
             <!-- Main Panel -->
             <div class="col-12 main-content">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2>New Enrollment</h2>
+                    <div>
+                        <h2 id="pageTitle">Course & Subject Selection</h2>
+                        <p class="text-muted" id="pageSubtitle">Select course, year level, semester, and subjects</p>
+                    </div>
                     <a href="index.html" class="btn btn-outline-secondary">Back to Dashboard</a>
                 </div>
+
+                <!-- Student Info Summary (if from new-student or re-enrollment) -->
+                <div class="card mb-4" id="studentInfoCard" style="display: none;">
+                    <div class="card-body">
+                        <h5 class="card-title">Student Information</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Student ID:</strong> <span id="summaryStudentId"></span></p>
+                                <p><strong>Name:</strong> <span id="summaryName"></span></p>
+                                <p><strong>Email:</strong> <span id="summaryEmail"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Phone:</strong> <span id="summaryPhone"></span></p>
+                                <p><strong>Address:</strong> <span id="summaryAddress"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
+                <!-- Step 1: Course Selection -->
                 <div class="card" id="enrollmentCard">
                     <div class="card-body">
+                        <h5 class="card-title mb-4">Course & Enrollment Details</h5>
                         <form id="enrollmentForm">
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Student ID</label>
-                                    <input type="text" class="form-control bg-light" id="studentId" readonly>
-                                    <small class="text-muted">Auto-generated</small>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Email Address</label>
-                                    <input type="email" class="form-control" id="email" name="email"
-                                           pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}" 
-                                           title="Please enter a valid email with @ and domain (e.g., .com)" 
-                                           required>
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">First Name</label>
-                                    <input type="text" class="form-control" id="firstName" name="firstName" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Last Name</label>
-                                    <input type="text" class="form-control" id="lastName" name="lastName" required>
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Phone Number</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">+63</span>
-                                        <input type="tel" class="form-control" id="phone" name="phone" 
-                                               placeholder="9123456789" 
-                                               pattern="[0-9]{10}" 
-                                               maxlength="10"
-                                               title="Please enter exactly 10 digits"
-                                               required>
-                                    </div>
-                                    <small class="text-muted">Enter 10 digits (e.g., 9123456789)</small>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Date of Birth</label>
-                                    <input type="date" class="form-control" id="birthDate" name="birthDate" required>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Address</label>
-                                <textarea class="form-control" id="address" name="address" rows="2" required></textarea>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Course Selection</label>
+                                    <label class="form-label fw-bold">Course Selection <span class="text-danger">*</span></label>
                                     <select class="form-select" id="course" name="course" required>
                                         <option value="">Select a course...</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Year Level</label>
+                                    <label class="form-label fw-bold">Year Level <span class="text-danger">*</span></label>
                                     <select class="form-select" id="yearLevel" name="yearLevel" required>
                                         <option value="">Select year...</option>
                                         <option value="1st Year">1st Year</option>
@@ -138,7 +110,7 @@
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Semester</label>
+                                    <label class="form-label fw-bold">Semester <span class="text-danger">*</span></label>
                                     <select class="form-select" id="semester" name="semester" required>
                                         <option value="">Select semester...</option>
                                         <option value="1st Semester">1st Semester</option>
@@ -147,7 +119,7 @@
                                     </select>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label fw-bold">Enrollment Status</label>
+                                    <label class="form-label fw-bold">Enrollment Status <span class="text-danger">*</span></label>
                                     <select class="form-select" id="enrollmentStatus" name="enrollmentStatus" required>
                                         <option value="Pending">Pending</option>
                                         <option value="Approved">Approved</option>
@@ -158,7 +130,7 @@
 
                             <div class="d-flex gap-2 mt-4">
                                 <button type="button" class="btn btn-warning fw-bold px-4" onclick="proceedToSubjects()">Proceed to Subject Selection</button>
-                                <button type="reset" class="btn btn-outline-secondary px-4">Clear Form</button>
+                                <button type="button" class="btn btn-outline-secondary px-4" onclick="goBack()">Go Back</button>
                             </div>
                         </form>
                     </div>
